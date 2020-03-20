@@ -24,18 +24,12 @@ func checkHandler(response http.ResponseWriter, request *http.Request) {
 	buf.ReadFrom(request.Body)
 	json.Unmarshal(buf.Bytes(), &domain)
 	fmt.Printf("Got Domain: %v\n", domain.Domain)
-	_, err := net.LookupHost(domain.Domain)
+	mxrecords, err := net.LookupMX(domain.Domain)
 	if err != nil {
-		fmt.Printf("Host not valid: %v\n", err)
+		fmt.Printf("No MX record found for %v: %v\n", domain.Domain, err)
 		status = false
 	} else {
-		mxrecords, err := net.LookupMX(domain.Domain)
-		if err != nil {
-			fmt.Printf("No MX record found for %v: %v\n", domain.Domain, err)
-			status = false
-		} else {
-			status = len(mxrecords) > 0
-		}
+		status = len(mxrecords) > 0
 	}
 	r := CheckResponse{status}
 	data, _ := json.Marshal(r)
