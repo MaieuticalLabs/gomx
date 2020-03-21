@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 )
 
 type CheckDomain struct {
@@ -25,6 +26,10 @@ func checkHandler(response http.ResponseWriter, request *http.Request) {
 	err := decoder.Decode(&domain)
 	if err != nil {
 		http.Error(response, "Invalid JSON payload", http.StatusBadRequest)
+		return
+	}
+	if strings.Index(domain.Domain, ".") < 1 {
+		http.Error(response, "Invalid Domain", http.StatusBadRequest)
 		return
 	}
 	fmt.Printf("Got Domain: %v\n", domain.Domain)
