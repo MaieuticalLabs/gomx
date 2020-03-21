@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -20,9 +19,14 @@ type CheckResponse struct {
 func checkHandler(response http.ResponseWriter, request *http.Request) {
 	var status bool
 	var domain CheckDomain
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(request.Body)
-	json.Unmarshal(buf.Bytes(), &domain)
+
+	decoder := json.NewDecoder(request.Body)
+	decoder.DisallowUnknownFields()
+	err := decoder.Decode(&domain)
+	if err != nil {
+		http.Error(response, "Invalid JSON payload", http.StatusBadRequest)
+		return
+	}
 	fmt.Printf("Got Domain: %v\n", domain.Domain)
 	mxrecords, err := net.LookupMX(domain.Domain)
 	if err != nil {
@@ -31,10 +35,12 @@ func checkHandler(response http.ResponseWriter, request *http.Request) {
 	} else {
 		status = len(mxrecords) > 0
 	}
+	encoder := json.NewEncoder(response)
 	r := CheckResponse{status}
-	data, _ := json.Marshal(r)
-	buf = bytes.NewBuffer(data)
-	response.Write(buf.Bytes())
+	err = encoder.Encode(r)
+	if err != nil {
+		http.Error(response, "Oops", http.StatusInternalServerError)
+	}
 }
 
 func main() {
