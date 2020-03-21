@@ -55,5 +55,8 @@ func main() {
 	port_str := fmt.Sprintf(":%d", port)
 	http.HandleFunc("/api/v1/check", checkHandler)
 	fmt.Printf("Service listening on port: %v\n", port_str)
-	http.ListenAndServe(port_str, nil)
+	err := http.ListenAndServe(port_str, nil)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+	}
 }
