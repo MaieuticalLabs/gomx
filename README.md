@@ -8,7 +8,7 @@ This is a research project, use at your own risk.
 
 ```
 $ ./gomx
-Service listening on port: :8000
+Service listening on: 127.0.0.1:8000
 ```
 
 ### Options available
@@ -16,8 +16,8 @@ Service listening on port: :8000
 ```
 $ ./gomx --help
 Usage of ./gomx:
-  -port int
-    	Port to bind (default 8000)
+  -address string
+    	Address to bind to (default "127.0.0.1:8000")
 ```
 
 ## API

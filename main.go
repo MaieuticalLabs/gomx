@@ -49,13 +49,12 @@ func checkHandler(response http.ResponseWriter, request *http.Request) {
 }
 
 func main() {
-	var port int
-	flag.IntVar(&port, "port", 8000, "Port to bind")
+	var address string
+	flag.StringVar(&address, "address", "127.0.0.1:8000", "Address to bind to")
 	flag.Parse()
-	port_str := fmt.Sprintf(":%d", port)
 	http.HandleFunc("/api/v1/check", checkHandler)
-	fmt.Printf("Service listening on port: %v\n", port_str)
-	err := http.ListenAndServe(port_str, nil)
+	fmt.Printf("Service listening on: %v\n", address)
+	err := http.ListenAndServe(address, nil)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 	}
