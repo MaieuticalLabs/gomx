@@ -21,30 +21,38 @@ func checkHandler(response http.ResponseWriter, request *http.Request) {
 	var status bool
 	var domain CheckDomain
 
-	decoder := json.NewDecoder(request.Body)
-	decoder.DisallowUnknownFields()
-	err := decoder.Decode(&domain)
-	if err != nil {
-		http.Error(response, "Invalid JSON payload", http.StatusBadRequest)
-		return
-	}
-	if strings.Index(domain.Domain, ".") < 1 {
-		http.Error(response, "Invalid Domain", http.StatusBadRequest)
-		return
-	}
-	fmt.Printf("Got Domain: %v\n", domain.Domain)
-	mxrecords, err := net.LookupMX(domain.Domain)
-	if err != nil {
-		fmt.Printf("No MX record found for %v: %v\n", domain.Domain, err)
-		status = false
-	} else {
-		status = len(mxrecords) > 0
-	}
-	encoder := json.NewEncoder(response)
-	r := CheckResponse{status}
-	err = encoder.Encode(r)
-	if err != nil {
-		http.Error(response, "Oops", http.StatusInternalServerError)
+	switch request.Method {
+	case http.MethodOptions:
+		response.Header().Set("Allow", "OPTIONS, POST")
+		fmt.Fprintf(response, "")
+	case http.MethodPost:
+		decoder := json.NewDecoder(request.Body)
+		decoder.DisallowUnknownFields()
+		err := decoder.Decode(&domain)
+		if err != nil {
+			http.Error(response, "Invalid JSON payload", http.StatusBadRequest)
+			return
+		}
+		if strings.Index(domain.Domain, ".") < 1 {
+			http.Error(response, "Invalid Domain", http.StatusBadRequest)
+			return
+		}
+		fmt.Printf("Got Domain: %v\n", domain.Domain)
+		mxrecords, err := net.LookupMX(domain.Domain)
+		if err != nil {
+			fmt.Printf("No MX record found for %v: %v\n", domain.Domain, err)
+			status = false
+		} else {
+			status = len(mxrecords) > 0
+		}
+		encoder := json.NewEncoder(response)
+		r := CheckResponse{status}
+		err = encoder.Encode(r)
+		if err != nil {
+			http.Error(response, "Oops", http.StatusInternalServerError)
+		}
+	default:
+		http.Error(response, "405 Method not allowed", http.StatusMethodNotAllowed)
 	}
 }
 
